@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".MainActivity">
+
+    <!-- Title for the home screen -->
+    <TextView
+        android:id="@+id/textViewTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:text="Reminder Lists"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:padding="8dp"/>
+
+    <!-- RecyclerView for displaying the list of reminder lists -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewReminderList"
+        android:layout_width="387dp"
+        android:layout_height="536dp"
+        android:layout_below="@id/textViewTitle"
+        android:layout_marginTop="33dp"
+        android:divider="@drawable/divider"
+        android:dividerHeight="1dp"
+        tools:listitem="@layout/reminder_list_item" />
+
+    <!-- Button for creating new reminder lists -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabNewList"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_add"
+        app:fabSize="normal"
+        app:backgroundTint="@color/primaryColor"
+        app:rippleColor="@color/primaryLightColor" />
+
+</RelativeLayout>

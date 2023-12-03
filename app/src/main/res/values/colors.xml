@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <!-- Primary color for your app -->
+    <color name="primaryColor">#FF6200EE</color> <!-- Example color -->
+    <!-- Primary light color for effects such as ripple -->
+    <color name="primaryLightColor">#FFBB86FC</color> <!-- Example color -->
+    <!-- Accent color for your app -->
+    <color name="accentColor">#FF03DAC5</color> <!-- Example color -->
+    <!-- Other colors for your app -->
+    <color name="primaryDarkColor">#FF3700B3</color> <!-- Example color -->
+    <color name="secondaryColor">#FF018786</color> <!-- Example color -->
+    <!-- Colors for UI elements such as backgrounds, cards, etc. -->
+    <color name="backgroundColor">#FFF5F5F5</color> <!-- Example light gray -->
+    <color name="cardColor">#FFFFFFFF</color> <!-- Typically white or a light shade -->
+    <color name="dividerColor">#1F000000</color> <!-- Light translucent black -->
+</resources>
