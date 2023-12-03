@@ -1,8 +1,16 @@
 package edu.qc.seclass.rlm;
 import android.app.AlarmManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import androidx.appcompat.app.AppCompatActivity;
+import android.Manifest;
+import androidx.core.app.ActivityCompat;
+import androidx.annotation.NonNull;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
 import android.content.DialogInterface;
@@ -10,6 +18,8 @@ import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import android.text.InputType;
+import android.net.Uri;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import java.util.ArrayList;
@@ -50,6 +60,36 @@ public class ManageRemindersActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private long listId; // Assume this is passed from the previous activity
 
+    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 1; // Request code for location permission
+
+
+    private void checkAndRequestExactAlarmPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            boolean hasPermission = alarmManager.canScheduleExactAlarms();
+            if (!hasPermission) {
+                // Direct user to the system settings for your app
+                Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                intent.setData(Uri.fromParts("package", getPackageName(), null));
+                startActivity(intent);
+            }
+        }
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.channel_name); // Define a name for the channel
+            String description = getString(R.string.channel_description); // Define the channel description
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel("REMINDER_CHANNEL", name, importance);
+            channel.setDescription(description);
+
+            // Register the channel with the system
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +107,9 @@ public class ManageRemindersActivity extends AppCompatActivity {
         reminderAdapter = new ReminderAdapter(new ArrayList<>(), dbQueries);
         recyclerView.setAdapter(reminderAdapter);
 
+        checkAndRequestExactAlarmPermission();
+        createNotificationChannel();
+
         updateReminders(); // Load reminders
 
         Button addButton = findViewById(R.id.buttonAddReminder);
@@ -77,6 +120,7 @@ public class ManageRemindersActivity extends AppCompatActivity {
             }
         });
     }
+
 
     private void showAddReminderDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -171,12 +215,66 @@ public class ManageRemindersActivity extends AppCompatActivity {
     }
 
     private void addNewReminder(String title, String type, String date, String time) {
+        // Check notification permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            NotificationChannel channel = manager.getNotificationChannel("YOUR_CHANNEL_ID");
+            if (channel != null && channel.getImportance() == NotificationManager.IMPORTANCE_NONE) {
+                promptUserToEnableNotifications();
+                return; // Stop execution
+            }
+        }
+
+        // Check location permission
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Permission not granted
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    MY_PERMISSIONS_REQUEST_LOCATION);
+            return; // Stop execution
+        }
+
+        // Proceed with adding the reminder and scheduling notification
         long newRowId = dbQueries.addNewReminder(title, type, date, time, listId);
         if (newRowId != -1) {
-            Toast.makeText(ManageRemindersActivity.this, "Reminder added!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Reminder added!", Toast.LENGTH_SHORT).show();
+            scheduleNotification(title, date, time); // Schedule the notification
             updateReminders(); // Refresh the data in the RecyclerView
         } else {
-            Toast.makeText(ManageRemindersActivity.this, "Error adding reminder", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Error adding reminder", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void promptUserToEnableNotifications() {
+        new AlertDialog.Builder(this)
+                .setTitle("Enable Notifications")
+                .setMessage("Notifications are disabled. Please enable them in the app settings.")
+                .setPositiveButton("Settings", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Intent to open app settings
+                        Intent intent = new Intent();
+                        intent.setAction(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+                        intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+                        startActivity(intent);
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == MY_PERMISSIONS_REQUEST_LOCATION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Location permission granted
+                // You can re-attempt adding a reminder here if necessary
+            } else {
+                Toast.makeText(this, "Location permission is required.", Toast.LENGTH_LONG).show();
+                finish(); // Close the activity
+            }
         }
     }
 
@@ -189,7 +287,6 @@ public class ManageRemindersActivity extends AppCompatActivity {
     private void scheduleNotification(String title, String date, String time) {
         Calendar calendar = Calendar.getInstance();
         // Parse the date and time strings and set the calendar object
-        // Assuming date and time are in the format "dd/MM/yyyy" and "HH:mm"
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
         try {
@@ -207,7 +304,13 @@ public class ManageRemindersActivity extends AppCompatActivity {
 
         Intent intent = new Intent(this, ReminderAlarmReceiver.class);
         intent.putExtra("REMINDER_TITLE", title);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            flags |= PendingIntent.FLAG_IMMUTABLE;
+        }
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, flags);
 
 
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);

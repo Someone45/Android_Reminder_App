@@ -126,8 +126,6 @@ public class ReminderDbQueries {
         String selection = ReminderContract.ReminderEntry.COLUMN_NAME_LIST_ID + " = ?";
         String[] selectionArgs = { String.valueOf(listId) };
 
-        // Add ORDER BY clause to sort by type
-        String sortOrder = ReminderContract.ReminderEntry.COLUMN_NAME_TYPE + " ASC";
 
         Cursor cursor = db.query(
                 ReminderContract.ReminderEntry.TABLE_NAME,
@@ -136,8 +134,7 @@ public class ReminderDbQueries {
                 selectionArgs,
                 null,
                 null,
-                null,
-                sortOrder
+                null
         );
 
         while (cursor.moveToNext()) {
