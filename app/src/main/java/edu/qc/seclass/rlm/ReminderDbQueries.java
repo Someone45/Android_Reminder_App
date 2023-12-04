@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ReminderDbQueries {
@@ -97,7 +98,7 @@ public class ReminderDbQueries {
     }
 
 
-    public long addNewReminder(String title, String type, String date, String time, long listId) {
+    public long addNewReminder(String title, String type, String date, String time, long listId, boolean isRepeat, List<String> repeatDays) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -106,6 +107,8 @@ public class ReminderDbQueries {
         values.put(ReminderContract.ReminderEntry.COLUMN_NAME_DATE, date);
         values.put(ReminderContract.ReminderEntry.COLUMN_NAME_TIME, time);
         values.put(ReminderContract.ReminderEntry.COLUMN_NAME_LIST_ID, listId);
+        values.put(ReminderContract.ReminderEntry.COLUMN_NAME_IS_REPEAT, isRepeat);
+        values.put(ReminderContract.ReminderEntry.COLUMN_NAME_REPEAT_DAYS, String.join(",", repeatDays));
 
         return db.insert(ReminderContract.ReminderEntry.TABLE_NAME, null, values);
     }
@@ -120,7 +123,9 @@ public class ReminderDbQueries {
                 ReminderContract.ReminderEntry.COLUMN_NAME_TYPE,
                 ReminderContract.ReminderEntry.COLUMN_NAME_DATE,
                 ReminderContract.ReminderEntry.COLUMN_NAME_TIME,
-                ReminderContract.ReminderEntry.COLUMN_NAME_CHECKED
+                ReminderContract.ReminderEntry.COLUMN_NAME_CHECKED,
+                ReminderContract.ReminderEntry.COLUMN_NAME_REPEAT_DAYS,
+                ReminderContract.ReminderEntry.COLUMN_NAME_IS_REPEAT
         };
 
         String selection = ReminderContract.ReminderEntry.COLUMN_NAME_LIST_ID + " = ?";
@@ -144,8 +149,11 @@ public class ReminderDbQueries {
             String date = cursor.getString(cursor.getColumnIndexOrThrow(ReminderContract.ReminderEntry.COLUMN_NAME_DATE));
             String time = cursor.getString(cursor.getColumnIndexOrThrow(ReminderContract.ReminderEntry.COLUMN_NAME_TIME));
             boolean isChecked = cursor.getInt(cursor.getColumnIndexOrThrow(ReminderContract.ReminderEntry.COLUMN_NAME_CHECKED)) == 1;
+            boolean isRepeat = cursor.getInt(cursor.getColumnIndexOrThrow(ReminderContract.ReminderEntry.COLUMN_NAME_IS_REPEAT)) > 0;
+            String repeatDaysStr = cursor.getString(cursor.getColumnIndexOrThrow(ReminderContract.ReminderEntry.COLUMN_NAME_REPEAT_DAYS));
+            List<String> repeatDays = repeatDaysStr != null ? Arrays.asList(repeatDaysStr.split(",")) : new ArrayList<>();
 
-            reminders.add(new Reminder(id, title, type, date, time, isChecked));
+            reminders.add(new Reminder(id, title, type, date, time, isChecked, isRepeat, repeatDays));
         }
         cursor.close();
 

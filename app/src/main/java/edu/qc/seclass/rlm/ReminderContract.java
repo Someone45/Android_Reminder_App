@@ -18,8 +18,10 @@ public final class ReminderContract {
         public static final String COLUMN_NAME_TYPE = "type";
         public static final String COLUMN_NAME_DATE = "date";
         public static final String COLUMN_NAME_TIME = "time";
-        public static final String COLUMN_NAME_CHECKED = "checked"; // 0 for unchecked, 1 for checked
-        public static final String COLUMN_NAME_LIST_ID = "listId"; // Foreign key to reminder list
+        public static final String COLUMN_NAME_CHECKED = "checked";
+        public static final String COLUMN_NAME_LIST_ID = "listId";
+        public static final String COLUMN_NAME_IS_REPEAT = "isRepeat";
+        public static final String COLUMN_NAME_REPEAT_DAYS = "repeatDays";
     }
 }
 
