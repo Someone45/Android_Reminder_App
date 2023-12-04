@@ -4,7 +4,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 public class ReminderDbHelper extends SQLiteOpenHelper {
-    public static final int DATABASE_VERSION = 4; // Increment the database version
+    public static final int DATABASE_VERSION = 1; // Increment the database version
     public static final String DATABASE_NAME = "Reminder.db";
 
     private static final String SQL_CREATE_REMINDER_LIST_ENTRIES =
@@ -20,6 +20,7 @@ public class ReminderDbHelper extends SQLiteOpenHelper {
                     ReminderContract.ReminderEntry.COLUMN_NAME_DATE + " TEXT," +
                     ReminderContract.ReminderEntry.COLUMN_NAME_TIME + " TEXT," +
                     ReminderContract.ReminderEntry.COLUMN_NAME_LIST_ID + " INTEGER," +
+                    ReminderContract.ReminderEntry.COLUMN_NAME_CHECKED + " BOOLEAN," +
                     "FOREIGN KEY(" + ReminderContract.ReminderEntry.COLUMN_NAME_LIST_ID + ") REFERENCES " +
                     ReminderContract.ReminderListEntry.TABLE_NAME + "(" + ReminderContract.ReminderListEntry._ID + "))";
 

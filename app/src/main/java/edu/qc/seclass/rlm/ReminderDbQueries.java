@@ -167,9 +167,17 @@ public class ReminderDbQueries {
     public void deleteReminderListByName(String name) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
+        // Retrieve the list ID corresponding to the name
+        long listId = getListIdByName(name);
+
+        // Delete all reminders associated with this list ID
+        String reminderSelection = ReminderContract.ReminderEntry.COLUMN_NAME_LIST_ID + " = ?";
+        String[] selectionArgs2 = { String.valueOf(listId) }; // Convert listId to String
+        db.delete(ReminderContract.ReminderEntry.TABLE_NAME, reminderSelection, selectionArgs2);
+
+        // Delete the reminder list itself
         String selection = ReminderContract.ReminderListEntry.COLUMN_NAME_TITLE + " = ?";
         String[] selectionArgs = { name };
-
         db.delete(ReminderContract.ReminderListEntry.TABLE_NAME, selection, selectionArgs);
     }
 }

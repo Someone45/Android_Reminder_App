@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private ReminderListAdapter reminderListAdapter;
     private RecyclerView recyclerView;
 
+    private boolean isSelectionMode = false;
     private ActionMode actionMode;
 
     @Override
@@ -58,8 +59,14 @@ public class MainActivity extends AppCompatActivity {
             public void onItemLongClick(int position) {
                 if (actionMode == null) {
                     actionMode = startSupportActionMode(actionModeCallback);
+                    toggleSelectionMode(true);
                 }
                 reminderListAdapter.toggleItemSelection(position);
+
+                if (actionMode != null) {
+//                    toggleSelectionMode(false);
+                    actionMode.invalidate(); // Refresh the action mode
+                }
             }
         });
 
@@ -73,6 +80,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         updateReminderLists(); // Initial load of data
+    }
+
+
+    private void toggleSelectionMode(boolean enabled) {
+        isSelectionMode = enabled;
+        reminderListAdapter.setSelectionMode(enabled);
     }
 
     private void showEditListDialog(final String oldListName) {
@@ -120,7 +133,11 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-            return false; // Nothing to do here in this case
+            MenuItem editItem = menu.findItem(R.id.action_edit);
+            // Hide the edit button if multiple items are selected
+            boolean shouldShowEdit = reminderListAdapter.getSelectedItemCount() == 1;
+            editItem.setVisible(shouldShowEdit);
+            return true;
         }
 
         @Override
@@ -146,7 +163,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onDestroyActionMode(ActionMode mode) {
             actionMode = null;
+            isSelectionMode = false;
             reminderListAdapter.clearSelection(); // Clear the selection
+            reminderListAdapter.setSelectionMode(false);
         }
     };
 

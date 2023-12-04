@@ -15,9 +15,17 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
     private OnItemClickListener listener;
     private OnItemLongClickListener longClickListener;
 
+    private boolean isSelectionMode;
+
     public ReminderListAdapter(List<String> reminderLists) {
         this.reminderLists = reminderLists;
     }
+
+    public void setSelectionMode(boolean isSelectionMode) {
+        this.isSelectionMode = isSelectionMode;
+        notifyDataSetChanged(); // Notify the adapter that data set has changed to reflect UI changes
+    }
+
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -30,7 +38,8 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
     public void onBindViewHolder(ViewHolder holder, int position) {
         String list = reminderLists.get(position);
         holder.textView.setText(list);
-        holder.itemView.setSelected(selectedItems.contains(position)); // Highlight selected items
+        holder.itemView.setSelected(selectedItems.contains(position));
+        holder.setIsSelectionMode(isSelectionMode);
     }
 
     @Override
@@ -45,10 +54,12 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
             selectedItems.add(position);
         }
         notifyItemChanged(position);
+
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView textView;
+        private boolean isSelectionMode;
 
         public ViewHolder(View v, final OnItemClickListener listener, final OnItemLongClickListener longClickListener) {
             super(v);
@@ -57,7 +68,9 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
             v.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (listener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
+                    if (isSelectionMode && getAdapterPosition() != RecyclerView.NO_POSITION) {
+                        longClickListener.onItemLongClick(getAdapterPosition());
+                    } else if (listener != null && getAdapterPosition() != RecyclerView.NO_POSITION) {
                         listener.onItemClick(textView.getText().toString());
                     }
                 }
@@ -74,7 +87,10 @@ public class ReminderListAdapter extends RecyclerView.Adapter<ReminderListAdapte
                 }
             });
 
+        }
 
+        public void setIsSelectionMode(boolean isSelectionMode) {
+            this.isSelectionMode = isSelectionMode;
         }
     }
 

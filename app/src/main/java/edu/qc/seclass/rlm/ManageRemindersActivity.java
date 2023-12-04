@@ -130,18 +130,19 @@ public class ManageRemindersActivity extends AppCompatActivity {
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
 
-        // Input field for reminder title
-        final EditText inputTitle = new EditText(this);
-        inputTitle.setInputType(InputType.TYPE_CLASS_TEXT);
-        inputTitle.setHint("Reminder Title");
-        layout.addView(inputTitle);
-
         // Spinner for selecting reminder type
         final Spinner typeSpinner = new Spinner(this);
         ArrayAdapter<String> typeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, new String[]{"Appointment", "Chores", "Meetings"});
         typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         typeSpinner.setAdapter(typeAdapter);
         layout.addView(typeSpinner);
+
+
+        // Input field for reminder title
+        final EditText inputTitle = new EditText(this);
+        inputTitle.setInputType(InputType.TYPE_CLASS_TEXT);
+        inputTitle.setHint("Reminder Title");
+        layout.addView(inputTitle);
 
         // Input field for date with a DatePickerDialog
         final EditText inputDate = new EditText(this);
