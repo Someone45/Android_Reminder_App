@@ -151,4 +151,25 @@ public class ReminderDbQueries {
 
         return reminders;
     }
+
+    public void updateReminderListName(String oldName, String newName) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(ReminderContract.ReminderListEntry.COLUMN_NAME_TITLE, newName);
+
+        String selection = ReminderContract.ReminderListEntry.COLUMN_NAME_TITLE + " = ?";
+        String[] selectionArgs = { oldName };
+
+        db.update(ReminderContract.ReminderListEntry.TABLE_NAME, values, selection, selectionArgs);
+    }
+
+    public void deleteReminderListByName(String name) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        String selection = ReminderContract.ReminderListEntry.COLUMN_NAME_TITLE + " = ?";
+        String[] selectionArgs = { name };
+
+        db.delete(ReminderContract.ReminderListEntry.TABLE_NAME, selection, selectionArgs);
+    }
 }

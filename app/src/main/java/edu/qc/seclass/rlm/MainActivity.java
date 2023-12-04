@@ -1,8 +1,12 @@
 package edu.qc.seclass.rlm;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.ActionMode;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 import android.content.DialogInterface;
@@ -15,11 +19,12 @@ import java.util.ArrayList;
 import java.util.List;
 import android.content.Intent;
 
-
 public class MainActivity extends AppCompatActivity {
     private ReminderDbQueries dbQueries;
     private ReminderListAdapter reminderListAdapter;
     private RecyclerView recyclerView;
+
+    private ActionMode actionMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +53,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Setup FloatingActionButton
+        reminderListAdapter.setOnItemLongClickListener(new ReminderListAdapter.OnItemLongClickListener() {
+            @Override
+            public void onItemLongClick(int position) {
+                if (actionMode == null) {
+                    actionMode = startSupportActionMode(actionModeCallback);
+                }
+                reminderListAdapter.toggleItemSelection(position);
+            }
+        });
+
+
         FloatingActionButton fab = findViewById(R.id.fabNewList);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -59,6 +74,81 @@ public class MainActivity extends AppCompatActivity {
 
         updateReminderLists(); // Initial load of data
     }
+
+    private void showEditListDialog(final String oldListName) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Edit Reminder List Name");
+
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setText(oldListName);
+        builder.setView(input);
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String newListName = input.getText().toString();
+                dbQueries.updateReminderListName(oldListName, newListName);
+                updateReminderLists();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+
+    private void deleteSelectedItems() {
+        for (Integer position : reminderListAdapter.getSelectedItems()) {
+            String listName = reminderListAdapter.getReminderListNameAtPosition(position);
+            dbQueries.deleteReminderListByName(listName);
+        }
+        updateReminderLists();
+    }
+
+    private ActionMode.Callback actionModeCallback = new ActionMode.Callback() {
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            MenuInflater inflater = mode.getMenuInflater();
+            inflater.inflate(R.menu.reminder_list_actions, menu);  // Updated to use the new file
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false; // Nothing to do here in this case
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            int itemId = item.getItemId();
+
+            if (itemId == R.id.action_edit) {
+                if (reminderListAdapter.getSelectedItemCount() == 1) {
+                    String selectedItemName = reminderListAdapter.getSelectedItemName();
+                    showEditListDialog(selectedItemName);
+                }
+                mode.finish();
+                return true;
+            } else if (itemId == R.id.action_delete) {
+                deleteSelectedItems();
+                mode.finish();
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            actionMode = null;
+            reminderListAdapter.clearSelection(); // Clear the selection
+        }
+    };
 
     private void showAddListDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
